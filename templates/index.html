@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<!-- Header -->
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+    <header class="masthead d-flex">
+      <div class="container text-center my-auto">
+          <div class="page-title">
+              <h1 class="mb-1">Here is what we found!</h1>
+          </div>
+
+
+    <div class="row">
+
+<p>Book Title: <b>{{ book.title }}</b>
+</div>
+<div class="row">
+<p>Number of pages: <b>{{ book.pages }} </b></p>
+</div>
+<div class="row">
+<br><p>ISBN: <b>{{ book.isbn}}</b> <a href="https://www.amazon.com/s?k={{book.isbn}}&ref=nb_sb_noss">Buy on Amazon!</a></p>
+</div>
+<div class="row">
+<br><p>Publication year:<b> {{book.year}}</b></p>
+</div>
+<div class="row">
+Description: <b>{{book.description|striptags}}</b>
+</div>
+<div class="row">
+ <p>Average Rating:</p>     
+</div>
+  <svg class="chart"></svg>
+
+
+<div class="mt-3 text-left">
+SIMILAR BOOKS
+
+
+<div class="list-group">
+{% for book in book.similar_books %}
+
+  <li>{{ book.title }} </li>
+
+{% endfor %}
+</div>
+
+</header>
+
+<div id="books-shelves" class="mt-2">
+    </div>
+
+<script type="text/javascript">
+  dataset = {
+      "children": {{ book.shelves[:30]|tojson|safe }} {# THINKME: Arbitrariy limiting this to 30 bubbles #}
+  };
+
+  console.log(dataset);
+
+  var diameter = 450;
+  {#var color = ["#17A2B8", "#68D8D6", "#9CEAEF", "#C4FFF9"];#}
+  var color = ["#17A2B8", "#e6c229", "#f17105", "#25283d"];
+
+  var bubble = d3.pack(dataset)
+      .size([diameter, diameter])
+      .padding(1.5);
+
+  var svg = d3.select("#books-shelves")
+      .append("svg")
+      .attr("width", diameter)
+      .attr("height", diameter)
+      .attr("class", "bubble");
+
+  var nodes = d3.hierarchy(dataset)
+      .sum(function(d) { return d.count; });
+
+  var node = svg.selectAll(".node")
+      .data(bubble(nodes).descendants())
+      .enter()
+      .filter(function(d){
+          return  !d.children
+      })
+      .append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) {
+          return "translate(" + d.x + "," + d.y + ")";
+      });
+
+  node.append("title")
+      .text(function(d) {
+          return `${d.data.count} people \nplaced this book \non a shelf called \n${d.data.name}`;
+      });
+
+  node.append("circle")
+      .attr("r", function(d) {
+          return d.r;
+      })
+      .style("fill", function(d,i) {
+          return color[i%color.length];
+      });
+
+  node.append("text")
+      .attr("dy", ".2em")
+      .style("text-anchor", "middle")
+      .text(function(d) {
+          return d.data.name.substring(0, d.r / 3);
+      })
+      .attr("font-family", "sans-serif")
+      .attr("font-size", function(d){
+          return d.r/5;
+      })
+      .attr("fill", "white");
+
+  node.append("text")
+      .attr("dy", "1.3em")
+      .style("text-anchor", "middle")
+      .text(function(d) {
+          return d.data.count;
+      })
+      .attr("font-family",  "Gill Sans", "Gill Sans MT")
+      .attr("font-size", function(d){
+          return d.r/5;
+      })
+      .attr("fill", "white");
+
+  d3.select(self.frameElement)
+      .style("height", diameter + "px");
+
+</script>
+<style type="text/css">
+  
+</style>
+<script>
+var data = [{{book.goodreads_rating|tojson|safe}}];
+
+var width = 420,
+  barHeight = 20;
+
+var x = d3.scaleLinear()
+  .domain([0, d3.max(data)])
+  .range([0, width]);
+
+var chart = d3.select(".chart")
+  .attr("width", width)
+  .attr("height", barHeight * data.length);
+
+var bar = chart.selectAll("g")
+  .data(data)
+  .enter().append("g")
+  .attr("transform", function(d, i) {
+    return "translate(0," + i * barHeight + ")";
+  });
+
+bar.append("rect")
+  .attr("width", x)
+  // add this attribute to change the color of the rect
+  .attr("fill", function(d) {
+    if (d > 4) {
+      return "green";
+    } else if (d > 3) {
+      return "orange";
+    }
+    return "red";
+  })
+  .attr("height", barHeight - 1);
+
+bar.append("text")
+  .attr("x", function(d) {
+    return x(d) - 3;
+  })
+  .attr("y", barHeight / 2)
+  .attr("dy", ".35em")
+  // add this attribute to change the color of the text
+  .attr("fill", function(d) {
+    if (d > 4) {
+      return "white";
+    }
+    return "black";
+  })
+  .text(function(d) {
+    return d;
+  });
+
+</script>
+{% endblock %}

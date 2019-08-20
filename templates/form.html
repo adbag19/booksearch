@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="section-content">
+<form action="/index" method="POST">
+        <div class="form-group">
+          <label>Title:</label>
+          <input type="text" name="booktitle">
+          <label>Author:</label>
+          <input type="text" name="bookauthor">
+          <button type="submit" name="button">Find</button>
+        </div>
+</form>
+<p>Enter the Title and Author exactly on the books</p>
+</div>
+{%endblock%}
+
